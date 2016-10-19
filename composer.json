@@ -1,5 +1,5 @@
 {
-    "name": "rdx/php-js-dom",
+    "name": "rdx/js-dom",
     "description": "JS-like DOM traversal",
     "type": "library",
     "license": "MIT",
