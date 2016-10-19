@@ -1,0 +1,21 @@
+{
+    "name": "rdx/php-js-dom",
+    "description": "JS-like DOM traversal",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Rudie Dirkx",
+            "email": "github@hotblocks.nl"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "rdx\\jsdom\\": "src"
+        }
+    },
+    "require": {
+        "symfony/css-selector": "^3.1"
+    }
+}
