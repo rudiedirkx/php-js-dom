@@ -34,10 +34,13 @@ class Node implements \ArrayAccess {
 		return $nodes;
 	}
 
-	protected function css($selector) {
+	protected function expression($selector, $prefix = null) {
         $converter = new CssSelectorConverter;
-        $expression = $converter->toXPath($selector);
+		return $prefix === null ? $converter->toXPath($selector) : $converter->toXPath($selector, $prefix);
+	}
 
+	protected function css($selector) {
+        $expression = $this->expression($selector);
         return $this->xpath($expression);
 	}
 
@@ -46,12 +49,14 @@ class Node implements \ArrayAccess {
         return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
 	}
 
+	// @todo Select elements with cross-current selector
 	public function query($selector) {
 		foreach ($this->css($selector) as $node) {
 			return $this->wrap($node);
 		}
 	}
 
+	// @todo Select elements with cross-current selector
 	public function queryAll($selector) {
         $nodes = $this->css($selector);
 		return $this->wraps($nodes);
@@ -65,16 +70,40 @@ class Node implements \ArrayAccess {
 		return $this->element->attributes->getNamedItem($name);
 	}
 
-	// @todo
-	// function children($selector = null);
-	// function child($selector = null);
+	// @todo Select elements with cross-current selector
+	protected function childrenLike($selector) {
+		$curr = $this->getNodePath();
+		$expr = $this->expression($selector, "$curr/");
+		return $this->wraps($this->wrap($this->element->ownerDocument)->xpath($expr));
+	}
+
+	public function children($selector = null) {
+		if ($selector) {
+			return $this->childrenLike($selector);
+		}
+
+		return $this->wraps($this->element->childNodes);
+	}
+
+	public function child($selector = null) {
+		$children = $this->children($selector);
+		return @$children[0];
+	}
 
 	/**
-	 * Proxy properties
+	 * Proxy
 	 */
 
 	public function __get($name) {
+		// @todo
+		// - textContent
+		// - innerText
+		// - innerHTML
 		return $this->element->$name;
+	}
+
+	public function __call($method, $arguments) {
+		return call_user_func_array([$this->element, $method], $arguments);
 	}
 
 	/**

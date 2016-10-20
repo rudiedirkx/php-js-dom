@@ -1,4 +1,5 @@
 JS-like DOM traversal in PHP.
+---
 
 Uses PHP's native `DOMDocument` and Symfony's `CssSelector`.
 
@@ -21,3 +22,12 @@ Uses PHP's native `DOMDocument` and Symfony's `CssSelector`.
 		// Attributes are array access.
 		$href = $a['href'];
 	}
+
+Known issues:
+---
+
+* Won't select cross-current, like `querySelector[All]` does:  
+  Document: `body > section > div`  
+  Current: `section`  
+  Selector: `body div`  
+  Should match the div, but it doesn't. (jQuery doesn't either.)

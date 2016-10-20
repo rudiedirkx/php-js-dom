@@ -12,7 +12,11 @@ $doc = Node::create(file_get_contents('pathe.html'));
 $section = $doc->query('section.schedule-simple');
 // print_r($section);
 
+// var_dump(count($section->children('div')));
+// echo "\n";
+
 $movies = $section->queryAll('.schedule-simple__item');
+// var_dump(count($movies));
 // print_r($movies);
 foreach ($movies as $movie) {
 	$a = $movie->query('h4 > a');
