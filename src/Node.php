@@ -62,8 +62,23 @@ class Node implements \ArrayAccess {
 		return $this->wraps($nodes);
 	}
 
-	public function getText() {
-		return trim(preg_replace('#\s+#', ' ', $this->element->textContent));
+	static public function makePlainText($text) {
+		return trim(preg_replace('#\s+#', ' ', $text));
+	}
+
+	public function getPlainText() {
+		return static::makePlainText($this->element->nodeValue);
+	}
+
+	static public function makeShapeText($text) {
+		// @todo Use block elements instead of arbitrary white space
+		return preg_replace('#\n{3,}#', "\n\n", implode("\n", array_map(function($line) {
+			return trim($line);
+		}, preg_split('#(\r\n|\r|\n)+#', trim($text)))));
+	}
+
+	public function getShapeText() {
+		return static::makeShapeText($this->element->nodeValue);
 	}
 
 	protected function attribute($name) {
@@ -95,15 +110,27 @@ class Node implements \ArrayAccess {
 	 */
 
 	public function __get($name) {
+		switch ($name) {
+			case 'textContent':
+				return $this->getShapeText();
+
+			case 'innerText':
+				return $this->getPlainText();
+		}
+
 		// @todo
-		// - textContent
-		// - innerText
 		// - innerHTML
+
 		return $this->element->$name;
 	}
 
-	public function __call($method, $arguments) {
-		return call_user_func_array([$this->element, $method], $arguments);
+	public function __call($function, $arguments) {
+		if (!is_callable($method = [$this->element, $function])) {
+			$class = get_class($this);
+			throw new \BadMethodCallException("Method $function does not exist on $class.");
+		}
+
+		return call_user_func_array($method, $arguments);
 	}
 
 	/**

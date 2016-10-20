@@ -21,7 +21,7 @@ $movies = $section->queryAll('.schedule-simple__item');
 foreach ($movies as $movie) {
 	$a = $movie->query('h4 > a');
 
-	$title = $a->getText();
+	$title = $a->innerText;
 	var_dump($title);
 
 	$href = $a['href'];
