@@ -19,15 +19,16 @@ class Node implements \ArrayAccess {
 		$this->element = $element;
 	}
 
-	protected function wrap($node) {
-		return new static($node);
+	protected function wrap($node, $class = NULL) {
+		$class or $class = get_class($this);
+		return new $class($node);
 	}
 
-	protected function wraps($list) {
+	protected function wraps($list, $class = NULL) {
 		$nodes = [];
 		foreach ($list as $node) {
 			if ($node->nodeType == XML_ELEMENT_NODE) {
-				$nodes[] = $this->wrap($node);
+				$nodes[] = $this->wrap($node, $class);
 			}
 		}
 
@@ -50,16 +51,16 @@ class Node implements \ArrayAccess {
 	}
 
 	// @todo Select elements with cross-current selector
-	public function query($selector) {
+	public function query($selector, $class = NULL) {
 		foreach ($this->css($selector) as $node) {
-			return $this->wrap($node);
+			return $this->wrap($node, $class);
 		}
 	}
 
 	// @todo Select elements with cross-current selector
-	public function queryAll($selector) {
+	public function queryAll($selector, $class = NULL) {
         $nodes = $this->css($selector);
-		return $this->wraps($nodes);
+		return $this->wraps($nodes, $class);
 	}
 
 	static public function makePlainText($text) {
