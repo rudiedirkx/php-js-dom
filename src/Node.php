@@ -82,6 +82,24 @@ class Node implements \ArrayAccess {
 		return static::makeShapeText($this->element->nodeValue);
 	}
 
+	public function getInnerHTML() {
+		$html = '';
+		foreach ($this->element->childNodes as $child) {
+			if ($child->nodeType == XML_ELEMENT_NODE) {
+				$html .= (new static($child))->getOuterHTML();
+			}
+			elseif ($child->nodeType == XML_TEXT_NODE) {
+				$html .= $child->wholeText;
+			}
+		}
+
+		return $html;
+	}
+
+	public function getOuterHTML() {
+		return $this->element->ownerDocument->saveHTML($this->element);
+	}
+
 	protected function attribute($name) {
 		return $this->element->attributes->getNamedItem($name);
 	}
@@ -106,6 +124,15 @@ class Node implements \ArrayAccess {
 		return @$children[0];
 	}
 
+	protected function walk($property) {
+		$element = $this;
+		while ($element = $element->$property) {
+			if ($element->nodeType == XML_ELEMENT_NODE) {
+				return new self($element);
+			}
+		}
+	}
+
 	/**
 	 * Proxy
 	 */
@@ -117,6 +144,19 @@ class Node implements \ArrayAccess {
 
 			case 'innerText':
 				return $this->getPlainText();
+
+			case 'innerHTML':
+				return $this->getInnerHTML();
+
+			case 'outerHTML':
+				return $this->getOuterHTML();
+
+			case 'nextElementSibling':
+				return $this->walk('nextSibling');
+
+			case 'prevElementSibling':
+			case 'previousElementSibling':
+				return $this->walk('previousSibling');
 		}
 
 		// @todo
