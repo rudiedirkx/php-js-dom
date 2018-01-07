@@ -6,7 +6,7 @@ require 'vendor/autoload.php';
 
 header('Content-type: text/plain; charset=utf-8');
 
-$doc = Node::create(file_get_contents('pathe.html'));
+$doc = Node::create(file_get_contents('https://www.pathe.nl/bioscoop/city'));
 // print_r($doc->children());
 
 $section = $doc->query('section.schedule-simple');
