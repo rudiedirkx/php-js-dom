@@ -67,37 +67,11 @@ class Node implements \ArrayAccess {
 		return trim(preg_replace('#\s+#', ' ', $text));
 	}
 
-	public function getPlainText() {
-		return static::makePlainText($this->element->nodeValue);
-	}
-
 	static public function makeShapeText($text) {
 		// @todo Use block elements instead of arbitrary white space
 		return preg_replace('#\n{3,}#', "\n\n", implode("\n", array_map(function($line) {
 			return trim($line);
 		}, preg_split('#(\r\n|\r|\n)+#', trim($text)))));
-	}
-
-	public function getShapeText() {
-		return static::makeShapeText($this->element->nodeValue);
-	}
-
-	public function getInnerHTML() {
-		$html = '';
-		foreach ($this->element->childNodes as $child) {
-			if ($child->nodeType == XML_ELEMENT_NODE) {
-				$html .= (new static($child))->getOuterHTML();
-			}
-			elseif ($child->nodeType == XML_TEXT_NODE) {
-				$html .= $child->wholeText;
-			}
-		}
-
-		return $html;
-	}
-
-	public function getOuterHTML() {
-		return $this->element->ownerDocument->saveHTML($this->element);
 	}
 
 	protected function attribute($name) {
@@ -135,33 +109,55 @@ class Node implements \ArrayAccess {
 	}
 
 	/**
+	 * Getters
+	 */
+
+	public function get_textContent() {
+		return static::makePlainText($this->element->nodeValue);
+	}
+
+	public function get_innerText() {
+		return static::makeShapeText($this->element->nodeValue);
+	}
+
+	public function get_innerHTML() {
+		$html = '';
+		foreach ($this->element->childNodes as $child) {
+			if ($child->nodeType == XML_ELEMENT_NODE) {
+				$html .= (new static($child))->outerHTML;
+			}
+			elseif ($child->nodeType == XML_TEXT_NODE) {
+				$html .= $child->wholeText;
+			}
+		}
+
+		return $html;
+	}
+
+	public function get_outerHTML() {
+		return $this->element->ownerDocument->saveHTML($this->element);
+	}
+
+	public function get_nextElementSibling() {
+		return $this->walk('nextSibling');
+	}
+
+	public function get_previousElementSibling() {
+		return $this->walk('previousSibling');
+	}
+
+	public function get_prevElementSibling() {
+		return $this->previousSibling;
+	}
+
+	/**
 	 * Proxy
 	 */
 
 	public function __get($name) {
-		switch ($name) {
-			case 'textContent':
-				return $this->getShapeText();
-
-			case 'innerText':
-				return $this->getPlainText();
-
-			case 'innerHTML':
-				return $this->getInnerHTML();
-
-			case 'outerHTML':
-				return $this->getOuterHTML();
-
-			case 'nextElementSibling':
-				return $this->walk('nextSibling');
-
-			case 'prevElementSibling':
-			case 'previousElementSibling':
-				return $this->walk('previousSibling');
+		if ( method_exists($this, $func = "get_{$name}") ) {
+			return call_user_func([$this, $func]);
 		}
-
-		// @todo
-		// - innerHTML
 
 		return $this->element->$name;
 	}
