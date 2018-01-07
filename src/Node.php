@@ -108,6 +108,7 @@ class Node implements \ArrayAccess {
 	protected function childrenLike($selector) {
 		$curr = $this->getNodePath();
 		$expr = $this->expression($selector, "$curr/");
+		$expr = str_replace("$curr/*/", "$curr/", $expr);
 		return $this->wraps($this->wrap($this->element->ownerDocument)->xpath($expr));
 	}
 
