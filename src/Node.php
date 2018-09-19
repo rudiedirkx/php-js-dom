@@ -6,6 +6,8 @@ use Symfony\Component\CssSelector\CssSelectorConverter;
 
 class Node implements \ArrayAccess {
 
+	static public $formElementSelectors = ['input'];
+
 	protected $element;
 
 	static function create($html) {
@@ -106,6 +108,32 @@ class Node implements \ArrayAccess {
 				return new self($element);
 			}
 		}
+	}
+
+	public function getFormValue( $name ) {
+		$selector = implode(', ', array_map(function($selector) use ($name) {
+			return $selector . '[name="' . $name . '"]';
+		}, static::$formElementSelectors));
+
+		$element = $this->query($selector);
+		return $element ? $this->getFormElementValue($element) : null;
+	}
+
+	public function getFormValues() {
+		$elements = $this->queryAll(implode(', ', static::$formElementSelectors));
+
+		$values = [];
+		foreach ( $elements as $element ) {
+			if ( $element['name'] ) {
+				$values[ $element['name'] ] = $this->getFormElementValue($element);
+			}
+		}
+
+		return $values;
+	}
+
+	public function getFormElementValue( self $element ) {
+		return $element['value'];
 	}
 
 	/**
