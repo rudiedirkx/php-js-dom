@@ -101,6 +101,10 @@ class Node implements \ArrayAccess {
 		return @$children[0];
 	}
 
+	public function parent() {
+		return new static($this->element->parentNode);
+	}
+
 	protected function walk($property) {
 		$element = $this;
 		while ($element = $element->$property) {
