@@ -194,6 +194,10 @@ class Node implements \ArrayAccess {
 		return $this->element->$name;
 	}
 
+	public function __isset($name) {
+		return method_exists($this, "get_{$name}") || property_exists($this->element, $name);
+	}
+
 	public function __call($function, $arguments) {
 		if (!is_callable($method = [$this->element, $function])) {
 			$class = get_class($this);
