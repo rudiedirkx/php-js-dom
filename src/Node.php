@@ -2,22 +2,31 @@
 
 namespace rdx\jsdom;
 
+use ArrayAccess;
+use BadMethodCallException;
+use DOMDocument;
+use DOMNode;
+use DOMXPath;
+use Exception;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
-class Node implements \ArrayAccess {
+class Node implements ArrayAccess {
 
 	static public $formElementSelectors = ['input'];
 
 	protected $element;
 
-	static function create($html) {
-		$document = new \DOMDocument;
+	static function create($html, ?string $encoding = null) {
+		$document = new DOMDocument();
 		libxml_use_internal_errors(true);
+		if ($encoding && strpos($html, '<?xml') === false) {
+			$html = '<?xml encoding="' . $encoding . '">' . $html;
+		}
 		$document->loadHTML($html);
 		return new static($document);
 	}
 
-	public function __construct(\DOMNode $element) {
+	public function __construct(DOMNode $element) {
 		$this->element = $element;
 	}
 
@@ -48,7 +57,7 @@ class Node implements \ArrayAccess {
 	}
 
 	protected function xpath($expression) {
-        $xpath = new \DOMXPath($this->element->ownerDocument ?: $this->element);
+        $xpath = new DOMXPath($this->element->ownerDocument ?: $this->element);
         return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
 	}
 
@@ -201,7 +210,7 @@ class Node implements \ArrayAccess {
 	public function __call($function, $arguments) {
 		if (!is_callable($method = [$this->element, $function])) {
 			$class = get_class($this);
-			throw new \BadMethodCallException("Method $function does not exist on $class.");
+			throw new BadMethodCallException("Method $function does not exist on $class.");
 		}
 
 		return call_user_func_array($method, $arguments);
@@ -221,11 +230,11 @@ class Node implements \ArrayAccess {
 	}
 
 	public function offsetSet($offset, $value) {
-		throw new \Exception('READ ONLY');
+		throw new Exception('READ ONLY');
 	}
 
 	public function offsetUnset($offset) {
-		throw new \Exception('READ ONLY');
+		throw new Exception('READ ONLY');
 	}
 
 }
