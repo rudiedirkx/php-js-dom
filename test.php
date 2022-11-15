@@ -21,6 +21,13 @@ $movies = $section->queryAll('.schedule-simple__item');
 foreach ($movies as $movie) {
 	$a = $movie->query('h4 > a');
 
+	$deeperA = $a->query('a');
+// var_dump($deeperA ? "$deeperA->tagName[class=" . $deeperA['class'] . "][title=" . $deeperA['title'] . "]" : NULL);
+	$closestDiv = $a->closest('div.schedule-simple__content');
+// var_dump($closestDiv ? "$closestDiv->tagName[class=" . $closestDiv['class'] . "][title=" . $closestDiv['title'] . "]" : NULL);
+	$firstA = $closestDiv->query('a');
+// var_dump($firstA ? "$firstA->tagName[class=" . $firstA['class'] . "][title=" . $firstA['title'] . "]" : NULL);
+
 	$title = $a->innerText;
 	var_dump($title);
 

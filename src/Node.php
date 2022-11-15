@@ -47,18 +47,25 @@ class Node implements ArrayAccess {
 	}
 
 	protected function expression($selector, $prefix = null) {
-        $converter = new CssSelectorConverter;
+		$converter = new CssSelectorConverter;
 		return $prefix === null ? $converter->toXPath($selector) : $converter->toXPath($selector, $prefix);
 	}
 
 	protected function css($selector) {
-        $expression = $this->expression($selector);
-        return $this->xpath($expression);
+		$expression = $this->expression($selector, 'descendant::'); // Instead of descendant-or-self
+		return $this->xpath($expression);
 	}
 
 	protected function xpath($expression) {
-        $xpath = new DOMXPath($this->element->ownerDocument ?: $this->element);
-        return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
+		$xpath = new DOMXPath($this->element->ownerDocument ?: $this->element);
+		return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
+	}
+
+	public function closest($selector, $class = NULL) {
+		$expression = $this->expression($selector, 'ancestor-or-self::');
+		foreach ($this->xpath($expression) as $node) {
+			return $this->wrap($node, $class);
+		}
 	}
 
 	// @todo Select elements with cross-current selector
@@ -70,7 +77,7 @@ class Node implements ArrayAccess {
 
 	// @todo Select elements with cross-current selector
 	public function queryAll($selector, $class = NULL) {
-        $nodes = $this->css($selector);
+		$nodes = $this->css($selector);
 		return $this->wraps($nodes, $class);
 	}
 
