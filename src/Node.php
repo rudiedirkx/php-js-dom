@@ -82,7 +82,7 @@ class Node implements ArrayAccess {
 	}
 
 	static public function makePlainText($text) {
-		return trim(preg_replace('#\s+#', ' ', $text));
+		return trim(preg_replace('#\s+#', ' ', str_replace(' ', ' ', $text)));
 	}
 
 	static public function makeShapeText($text) {
