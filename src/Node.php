@@ -53,17 +53,17 @@ class Node implements ArrayAccess {
 
 	protected function css($selector) {
 		$expression = $this->expression($selector, 'descendant::'); // Instead of descendant-or-self
-		return $this->xpath($expression);
+		return $this->xpathRaw($expression);
 	}
 
-	protected function xpath($expression) {
+	public function xpathRaw($expression) {
 		$xpath = new DOMXPath($this->element->ownerDocument ?: $this->element);
 		return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
 	}
 
 	public function closest($selector, $class = NULL) {
 		$expression = $this->expression($selector, 'ancestor-or-self::');
-		foreach ($this->xpath($expression) as $node) {
+		foreach ($this->xpathRaw($expression) as $node) {
 			return $this->wrap($node, $class);
 		}
 	}
@@ -101,7 +101,7 @@ class Node implements ArrayAccess {
 		$curr = $this->getNodePath();
 		$expr = $this->expression($selector, "$curr/");
 		$expr = str_replace("$curr/*/", "$curr/", $expr);
-		return $this->wraps($this->wrap($this->element->ownerDocument)->xpath($expr));
+		return $this->wraps($this->wrap($this->element->ownerDocument)->xpathRaw($expr));
 	}
 
 	public function children($selector = null) {
