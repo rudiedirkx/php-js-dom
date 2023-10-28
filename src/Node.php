@@ -53,6 +53,7 @@ class Node implements ArrayAccess {
 
 	protected function css($selector) {
 		$expression = $this->expression($selector, 'descendant::'); // Instead of descendant-or-self
+		$expression = preg_replace('#^descendant::\*\/\*\[#', 'descendant::*[', $expression); // Fix */* double level check since we NEED descendants, not self
 		return $this->xpathRaw($expression);
 	}
 
