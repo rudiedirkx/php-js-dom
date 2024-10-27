@@ -6,17 +6,29 @@ use ArrayAccess;
 use BadMethodCallException;
 use DOMDocument;
 use DOMNode;
+use DOMNodeList;
 use DOMXPath;
 use Exception;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 
+/**
+ * @property string $textContent
+ * @property string $innerText
+ * @property string $innerHTML
+ * @property string $outerHTML
+ * @property ?self $nextElementSibling
+ * @property ?self $previousElementSibling
+ * @property ?self $prevElementSibling
+ *
+ * @mixin DOMDocument
+ */
 class Node implements ArrayAccess {
 
 	static public $formElementSelectors = ['input'];
 
 	protected $element;
 
-	static function create($html, ?string $encoding = null) {
+	static public function create($html, ?string $encoding = null) : static {
 		$document = new DOMDocument();
 		libxml_use_internal_errors(true);
 		if ($encoding && strpos($html, '<?xml') === false) {
@@ -26,7 +38,7 @@ class Node implements ArrayAccess {
 		return new static($document);
 	}
 
-	public function __construct(DOMNode $element) {
+	final public function __construct(DOMNode $element) {
 		$this->element = $element;
 	}
 
@@ -57,11 +69,17 @@ class Node implements ArrayAccess {
 		return $this->xpathRaw($expression);
 	}
 
+	/**
+	 * @return DOMNodeList
+	 */
 	public function xpathRaw($expression) {
 		$xpath = new DOMXPath($this->element->ownerDocument ?: $this->element);
 		return $xpath->query($expression, $this->element->ownerDocument ? $this->element : null);
 	}
 
+	/**
+	 * @return ?self
+	 */
 	public function closest($selector, $class = NULL) {
 		$expression = $this->expression($selector, 'ancestor-or-self::');
 		foreach ($this->xpathRaw($expression) as $node) {
@@ -69,24 +87,30 @@ class Node implements ArrayAccess {
 		}
 	}
 
-	// @todo Select elements with cross-current selector
+	/**
+	 * @todo Select elements with cross-current selector
+	 * @return ?self
+	 */
 	public function query($selector, $class = NULL) {
 		foreach ($this->css($selector) as $node) {
 			return $this->wrap($node, $class);
 		}
 	}
 
-	// @todo Select elements with cross-current selector
+	/**
+	 * @todo Select elements with cross-current selector
+	 * @return self[]
+	 */
 	public function queryAll($selector, $class = NULL) {
 		$nodes = $this->css($selector);
 		return $this->wraps($nodes, $class);
 	}
 
-	static public function makePlainText($text) {
+	static public function makePlainText($text) : string {
 		return trim(preg_replace('#\s+#', ' ', str_replace(' ', ' ', $text)));
 	}
 
-	static public function makeShapeText($text) {
+	static public function makeShapeText($text) : string {
 		// @todo Use block elements instead of arbitrary white space
 		return preg_replace('#\n{3,}#', "\n\n", implode("\n", array_map(function($line) {
 			return trim($line);
@@ -105,6 +129,9 @@ class Node implements ArrayAccess {
 		return $this->wraps($this->wrap($this->element->ownerDocument)->xpathRaw($expr));
 	}
 
+	/**
+	 * @return self[]
+	 */
 	public function children($selector = null) {
 		if ($selector) {
 			return $this->childrenLike($selector);
@@ -113,25 +140,32 @@ class Node implements ArrayAccess {
 		return $this->wraps($this->element->childNodes);
 	}
 
+	/**
+	 * @return ?self
+	 */
 	public function child($selector = null) {
 		$children = $this->children($selector);
 		return @$children[0];
 	}
 
+	/**
+	 * @return self
+	 */
 	public function parent() {
 		return new static($this->element->parentNode);
 	}
 
-	protected function walk($property) {
+	protected function walk(string $property) {
 		$element = $this;
 		while ($element = $element->$property) {
 			if ($element->nodeType == XML_ELEMENT_NODE) {
-				return new self($element);
+				return new static($element);
 			}
 		}
+		return null;
 	}
 
-	public function getFormValue( $name ) {
+	public function getFormValue($name) {
 		$selector = implode(', ', array_map(function($selector) use ($name) {
 			return $selector . '[name="' . $name . '"]';
 		}, static::$formElementSelectors));
@@ -144,8 +178,8 @@ class Node implements ArrayAccess {
 		$elements = $this->queryAll(implode(', ', static::$formElementSelectors));
 
 		$values = [];
-		foreach ( $elements as $element ) {
-			if ( $element['name'] ) {
+		foreach ($elements as $element) {
+			if ($element['name']) {
 				$values[ $element['name'] ] = $this->getFormElementValue($element);
 			}
 		}
@@ -153,7 +187,7 @@ class Node implements ArrayAccess {
 		return $values;
 	}
 
-	public function getFormElementValue( self $element ) {
+	public function getFormElementValue(self $element) {
 		return $element['value'];
 	}
 
@@ -204,7 +238,7 @@ class Node implements ArrayAccess {
 	 */
 
 	public function __get($name) {
-		if ( method_exists($this, $func = "get_{$name}") ) {
+		if (method_exists($this, $func = "get_{$name}")) {
 			return call_user_func([$this, $func]);
 		}
 
