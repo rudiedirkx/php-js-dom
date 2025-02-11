@@ -262,21 +262,27 @@ class Node implements ArrayAccess {
 	 * ArrayAccess
 	 */
 
-	public function offsetExists($offset) : bool {
+	public function offsetExists(mixed $offset) : bool {
 		return $this->attribute($offset) !== null;
 	}
 
-	public function offsetGet($offset) : mixed {
+	public function offsetGet(mixed $offset) : mixed {
 		$attribute = $this->attribute($offset);
 		return $attribute ? trim($attribute->nodeValue) : null;
 	}
 
-	public function offsetSet($offset, $value) : void {
+	public function offsetSet(mixed $offset, mixed $value) : void {
 		throw new Exception('READ ONLY');
 	}
 
-	public function offsetUnset($offset) : void {
+	public function offsetUnset(mixed $offset) : void {
 		throw new Exception('READ ONLY');
+	}
+
+	public function __debugInfo() : array {
+		return [
+			'textContent' => $this->textContent,
+		];
 	}
 
 }
