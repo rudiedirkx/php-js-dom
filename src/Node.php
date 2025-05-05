@@ -106,15 +106,15 @@ class Node implements ArrayAccess {
 		return $this->wraps($nodes, $class);
 	}
 
-	static public function makePlainText($text) : string {
-		return trim(preg_replace('#\s+#', ' ', str_replace(' ', ' ', $text)));
+	static public function makePlainText(?string $text) : string {
+		return trim(preg_replace('#\s+#', ' ', str_replace(' ', ' ', $text ?? '')));
 	}
 
-	static public function makeShapeText($text) : string {
+	static public function makeShapeText(?string $text) : string {
 		// @todo Use block elements instead of arbitrary white space
 		return preg_replace('#\n{3,}#', "\n\n", implode("\n", array_map(function($line) {
 			return trim($line);
-		}, preg_split('#(\r\n|\r|\n)+#', trim($text)))));
+		}, preg_split('#(\r\n|\r|\n)+#', trim($text ?? '')))));
 	}
 
 	protected function attribute($name) {
@@ -279,10 +279,10 @@ class Node implements ArrayAccess {
 		throw new Exception('READ ONLY');
 	}
 
-	public function __debugInfo() : array {
-		return [
-			'textContent' => $this->textContent,
-		];
-	}
+	// public function __debugInfo() : array {
+	// 	return [
+	// 		'textContent' => $this->textContent,
+	// 	];
+	// }
 
 }
